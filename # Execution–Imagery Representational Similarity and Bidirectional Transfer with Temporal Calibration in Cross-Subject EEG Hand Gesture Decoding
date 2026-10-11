@@ -1,2 +1,3 @@
 # EEG_ME_MI_Gesture_Decoding
 Reproducible EEG pipeline for hand gesture decoding across motor execution and motor imagery, including cross-subject evaluation, transfer, temporal calibration, and representational similarity analysis.
+Preprocessing, feature extraction, machine-learning models, deep-learning models, LOSO evaluation, transfer, calibration, RSA, explainability, and robustness scripts
