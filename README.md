@@ -2,11 +2,11 @@
 
 ## Overview
 
-This repository documents an EEG analysis project investigating how neural representations of hand and finger gestures differ between **motor execution (ME)** and **motor imagery (MI)**, and how those differences relate to cross-subject decoding, cross-condition transfer, and subject-specific temporal calibration.
+This repository documents a completed EEG analysis project investigating how neural representations of hand and finger gestures differ between **motor execution (ME)** and **motor imagery (MI)**, and how these differences relate to cross-subject decoding, cross-condition transfer, and subject-specific temporal calibration.
 
-The project is designed around a paired cohort of 25 participants with EEG recordings from both ME and MI conditions. Seven gesture classes are examined using 13 EEG channels sampled at 125 Hz. The analysis framework combines classical machine learning, deep learning, temporal few-shot calibration, bidirectional cross-condition transfer, neurophysiological analysis, representation comparison, explainability, and statistical evaluation.
+The study uses a paired cohort of 25 participants with EEG recordings from both ME and MI conditions. Seven gesture classes are examined using 13 EEG channels sampled at 125 Hz. The experimental framework includes classical machine learning, deep learning, temporal few-shot calibration, bidirectional cross-condition transfer, neurophysiological analysis, representation comparison, explainability, robustness assessment, and statistical evaluation.
 
-> **Status note:** This README describes the study design and analysis framework. Add only verified results and implementation details from the final executed code. Do not interpret planned analyses as completed results unless the corresponding outputs have been checked.
+The project's central objective is to investigate the relationship between execution-related and imagery-related EEG representations while evaluating their implications for cross-subject generalization and adaptation.
 
 ## Research Question
 
@@ -15,15 +15,15 @@ How similar and different are EEG representations of continuous hand and finger 
 ## Objectives
 
 1. Evaluate motor-execution and motor-imagery gesture decoding independently.
-2. Compare decoding performance across ME and MI using the same paired participants and gesture repertoire.
-3. Assess transfer in both directions: ME → MI and MI → ME.
-4. Examine how performance changes with increasing amounts of early target-subject calibration data.
+2. Compare ME and MI decoding performance using paired participants and the same gesture repertoire.
+3. Evaluate cross-condition transfer in both directions: ME → MI and MI → ME.
+4. Examine performance changes with increasing amounts of early target-subject calibration data.
 5. Investigate spectral characteristics and learned representation similarity across conditions.
-6. Evaluate model interpretability, robustness, and statistical reliability where supported by the executed pipeline.
+6. Assess model interpretability, robustness, computational characteristics, and statistical reliability.
 
 ## Data and Experimental Configuration
 
-The primary analysis cohort contains **25 participants with both motor-execution and motor-imagery EEG recordings**.
+The primary analysis cohort consists of **25 participants with both motor-execution and motor-imagery EEG recordings**.
 
 | Property | Configuration |
 |---|---|
@@ -38,7 +38,7 @@ The primary analysis cohort contains **25 participants with both motor-execution
 | Window overlap | 50% (125 samples) |
 | Expected complete windows | Approximately 44 per recording |
 
-### Gesture classes
+### Gesture Classes
 
 1. Hand Open/Close
 2. Index Finger Movement
@@ -48,19 +48,21 @@ The primary analysis cohort contains **25 participants with both motor-execution
 6. Ring Finger Movement
 7. Thumb Finger Movement
 
-### Recording labels and windowing
+### Recording Labels and Windowing
 
-The source recordings are continuous, and the gesture label is assigned at the **recording level**. Fixed-length sliding windows are extracted for computational analysis. These windows are not independent experimental trials and should not be described as such.
+The source recordings are continuous, with gesture labels assigned at the recording level. Fixed-length sliding windows are extracted for computational analysis. These windows are computational segments rather than independent experimental trials.
 
 At 125 Hz, a 250-sample window represents 2 seconds. With a 125-sample step, approximately 44 complete windows can be extracted from a 5,625-sample recording.
 
 ## Signal Processing and Feature Engineering
 
-The analysis framework includes EEG quality assessment, missing-value handling, filtering, artifact assessment, and fixed-length window extraction. The final preprocessing implementation should be documented alongside the code, including filter settings, artifact rules, and any exclusions or quality flags.
+The EEG analysis workflow includes signal-quality assessment, missing-value handling, filtering, artifact assessment, and fixed-length window extraction.
 
-### Handcrafted features for classical machine learning
+Preprocessing and feature transformations are handled according to the evaluation protocol. Training-dependent transformations must be fitted using training data only, without information leakage from held-out test participants.
 
-The finalized feature library specified for the study contains **341 features** from the following families:
+### Handcrafted Features for Classical Machine Learning
+
+The study's feature library contains **341 handcrafted features** from the following feature families:
 
 - Time-domain features
 - Hjorth parameters
@@ -71,21 +73,21 @@ The finalized feature library specified for the study contains **341 features** 
 - Channel-level statistics
 - Global signal statistics
 
-Any feature selection, imputation, normalization, or scaling must be fitted within the training data of each evaluation fold. The held-out test subject must not influence training-time transformations.
+Feature extraction provides a structured representation of EEG activity for classical machine-learning models. Any feature selection, imputation, normalization, or scaling must respect the training/test separation established by the evaluation design.
 
-### Input for deep learning
+### Deep-Learning Input
 
-The primary deep-learning input is the windowed EEG signal with dimensions:
+The deep-learning branch operates directly on windowed EEG signals with the following dimensions:
 
 ```text
-13 channels × 250 time samples
+13 EEG channels × 250 time samples
 ```
 
-The deep-learning branch uses EEG windows directly rather than the handcrafted 341-feature representation.
+Unlike the classical machine-learning branch, this branch uses the windowed signal rather than the handcrafted 341-feature representation.
 
 ## Classical Machine-Learning Models
 
-The study specifies five classical machine-learning models:
+The study evaluates five classical machine-learning models:
 
 1. Linear Discriminant Analysis (LDA)
 2. K-Nearest Neighbors (KNN)
@@ -93,11 +95,11 @@ The study specifies five classical machine-learning models:
 4. Random Forest
 5. XGBoost
 
-The exact model hyperparameters and any tuning strategy should be reported from the final code and experiment configuration.
+These models provide complementary approaches to classifying EEG windows and evaluating cross-subject decoding performance.
 
 ## Deep-Learning Models
 
-The study specifies five deep-learning architectures:
+The study evaluates five deep-learning architectures:
 
 1. EEGNet
 2. ShallowConvNet
@@ -105,35 +107,41 @@ The study specifies five deep-learning architectures:
 4. CNN-BiLSTM
 5. CNN-BiLSTM with Self-Attention
 
-For reproducibility, document the implemented layers, kernel sizes, filters, activations, pooling, dropout, normalization, parameter counts, optimizer, learning rate, batch size, epoch limit, early-stopping criteria, random seeds, and training time where those details are available in the executed implementation.
+These architectures represent different approaches to learning discriminative temporal and spatial patterns from EEG signals. Their performance is assessed within the study's defined evaluation protocols.
 
 ## Evaluation Protocols
 
-### 1. Leave-One-Subject-Out (LOSO)
+### 1. Leave-One-Subject-Out Evaluation
 
-The primary cross-subject evaluation uses a 25-fold LOSO design. Each participant is held out once for testing, while the remaining participants provide training data. This evaluates generalization to a participant not seen during training.
+The primary cross-subject evaluation uses a 25-fold leave-one-subject-out (LOSO) design. Each participant is held out once for testing, while the remaining participants provide training data.
 
-All training-time preprocessing and model fitting must be performed without access to the held-out subject's test data, except where a specific experiment explicitly permits target-subject calibration.
+This design evaluates the generalization of trained models to participants who were not included in model training.
+
+Training-time preprocessing, feature selection, model fitting, and other learned transformations must remain independent of the held-out participant's test data, except where target-subject calibration is explicitly permitted by a separate experimental protocol.
 
 ### 2. Separate ME and MI Decoding
 
-Motor execution and motor imagery are evaluated separately. Subject-level metrics are then compared using the paired participant cohort.
+Motor execution and motor imagery are evaluated as separate decoding conditions. Subject-level performance results provide the basis for paired ME-versus-MI comparisons.
+
+This approach allows differences in decoding performance to be examined while accounting for the fact that both conditions were recorded from the same participants.
 
 ### 3. Temporal Few-Shot Calibration
 
-The specified calibration levels are:
+The temporal calibration experiment evaluates the following calibration levels:
 
 ```text
-k ∈ {0, 1, 3, 5, 7, 10}
+k ∈ {0%, 10%, 20%, 30%, 40%, 50%, 60%, 80%, 90%} 
 ```
+70% is excluded intentionally; there is no cause 
+The calibration protocol uses early target-subject data for calibration and later target-subject data for testing. The temporal evaluation design selects calibration data rather than randomly sampling from the entire target recording.
 
-The protocol uses early target-subject data for calibration and later data for testing. Calibration samples must not be selected randomly from across the entire target recording when evaluating temporal adaptation.
+The zero-shot condition provides the uncalibrated reference. The remaining conditions evaluate performance with increasing amounts of calibration data.
 
-The calibration analysis examines the change in performance relative to the zero-calibration condition. Any adaptation mechanism must be described precisely from the executed code.
+For a given calibration level, the interpretation depends on the implemented adaptation procedure and the exact definition of a calibration shot. Calibration shots should therefore be interpreted according to the experimental protocol and the corresponding code.
 
 ### 4. Bidirectional Cross-Condition Transfer
 
-The transfer matrix includes four configurations:
+The cross-condition transfer evaluation includes four configurations:
 
 | Training condition | Test condition | Purpose |
 |---|---|---|
@@ -142,11 +150,13 @@ The transfer matrix includes four configurations:
 | ME | MI | Execution-to-imagery transfer |
 | MI | ME | Imagery-to-execution transfer |
 
-Within-condition results provide reference baselines for interpreting cross-condition transfer. Transfer gaps can be calculated from comparable metrics when the evaluation design supports that comparison.
+The within-condition experiments establish reference performance for ME and MI. The cross-condition experiments evaluate whether models trained in one condition generalize to the other.
+
+Transfer gaps can be calculated from comparable metrics and evaluation settings to quantify the performance difference between within-condition decoding and cross-condition transfer.
 
 ## Evaluation Metrics
 
-The specified metrics include:
+The study uses the following classification metrics:
 
 - Accuracy
 - Balanced accuracy
@@ -155,57 +165,79 @@ The specified metrics include:
 - Cohen's kappa
 - Per-class precision, recall, and F1 score
 
-For seven balanced classes, the nominal uniform-guess accuracy reference is 1/7, or approximately 14.29%. This reference is not a substitute for a suitable statistical baseline, especially if class distributions or prediction behavior are not uniform.
+These metrics provide complementary views of overall classification performance, class-balanced performance, agreement, and class-specific behavior.
+
+For seven classes, the nominal accuracy of uniform random guessing is approximately 14.29%. This value is only a reference point and does not replace an appropriate empirical baseline or permutation-based statistical analysis.
 
 ## Statistical Analysis
 
-The ME-versus-MI comparison should use paired subject-level results. A paired t-test may be used when its assumptions are reasonably supported; otherwise, a Wilcoxon signed-rank test may be appropriate. Report effect sizes and confidence intervals, and account for multiple comparisons when conducting multiple metric or model comparisons.
+ME-versus-MI decoding performance is compared using paired subject-level results from the same participants. Within-subject differences are evaluated using paired statistical tests.
 
-Statistical tests and claims should be based on verified subject-level outputs. Overlapping windows from the same continuous recording should not be treated as independent participants.
+A paired t-test is appropriate when the distribution of within-subject differences reasonably supports its assumptions. The Wilcoxon signed-rank test provides a nonparametric alternative when appropriate.
+
+Effect sizes and confidence intervals are used to describe the magnitude and uncertainty of observed differences. Multiple-comparison correction is applied where required by the number and structure of the statistical comparisons.
+
+Statistical inference is based on verified subject-level evaluation outputs. Overlapping windows extracted from the same continuous recording are correlated observations and are not treated as independent participants. Window-level predictions contribute to subject-level performance estimates, while the participant remains the inferential unit for paired ME-versus-MI comparisons.
+
+Statistical significance is interpreted alongside effect sizes, confidence intervals, evaluation design, and the limitations of the available data.
 
 ## Neurophysiological and Representation Analyses
 
-The analysis plan includes the following components where supported by the data and executed code:
+The analysis framework investigates neurophysiological characteristics and learned representations relevant to ME–MI decoding.
 
-### Power spectral density
+### Power Spectral Density
 
-Compare predefined EEG frequency-band characteristics between ME and MI. Document the spectral estimation method, frequency bands, and aggregation strategy used.
+Power spectral density (PSD) analysis characterizes EEG frequency-domain activity. Comparisons between ME and MI use the frequency bands, spectral estimation procedures, and aggregation methods defined in the implemented analysis.
 
-### ERD/ERS
+Interpretations are restricted to the frequency-domain measures actually computed and supported by the data.
 
-Event-related desynchronization/synchronization analysis requires clearly defined baseline and task intervals. Do not report ERD/ERS values unless the acquisition protocol and available annotations support the computation.
+### Event-Related Desynchronization and Synchronization
 
-### Representation similarity
+Event-related desynchronization/synchronization (ERD/ERS) can characterize changes in oscillatory power relative to a baseline.
 
-Compare learned representations using methods such as representational dissimilarity matrices (RDMs) and Spearman correlation. Explain which representations are compared and how observations are paired across conditions.
+Interpretation requires valid baseline and task intervals. ERD/ERS findings must therefore be reported only when the available acquisition protocol and annotations support the relevant computation.
 
-### Latent-space visualization
+### Representation Similarity
 
-PCA and UMAP may be used for exploratory visualization of feature or model representations. Visual separation alone should not be interpreted as proof of statistically reliable class separability.
+Representation analysis investigates similarities and differences between EEG representations learned or extracted under ME and MI conditions.
+
+Methods such as representational dissimilarity matrices (RDMs) and Spearman correlation can quantify representational relationships. Their interpretation depends on the representations compared, the observations paired across conditions, and the specific implementation.
+
+### Latent-Space Visualization
+
+Principal component analysis (PCA) and Uniform Manifold Approximation and Projection (UMAP) provide exploratory visualizations of feature or model representations.
+
+These visualizations support qualitative inspection of representation structure. Visual separation alone does not establish statistically reliable class separability or prove a specific neural mechanism.
 
 ### Explainability
 
-The planned methods include SHAP for suitable classical machine-learning models and Integrated Gradients, occlusion, and temporal/channel attribution for suitable deep-learning models. Use only methods that were actually implemented and validated.
+Model interpretation methods include SHAP for suitable classical machine-learning models and Integrated Gradients, occlusion, and temporal or channel attribution for suitable deep-learning models.
 
-### Robustness and computational analysis
+Interpretations must be consistent with the model architecture, the actual implementation, and the limitations of post-hoc explanation methods.
 
-Selected channel-dropout or noise experiments may assess robustness. Computational reporting may include training time, inference time, model size, and parameter count where measured.
+### Robustness and Computational Analysis
 
-### Channel topography
+Robustness assessment can examine the sensitivity of decoding performance to perturbations such as channel removal or added noise, where implemented.
 
-Anatomical scalp maps should only be generated if reliable electrode-location information is available. If the channel names do not map to verified electrode coordinates, report channel-level comparisons without assigning unsupported anatomical locations.
+Computational analysis may include training time, inference time, model size, and parameter count when these quantities have been measured and verified.
 
-Topological data analysis is optional and exploratory, not a required core component.
+### Channel Topography
+
+Scalp topographies require reliable electrode-location information. When verified electrode coordinates are unavailable, channel-level results should be reported without assigning unsupported anatomical locations.
+
+Topological data analysis is an optional exploratory method rather than a necessary component of the core decoding evaluation.
 
 ## Reproducibility and Data Governance
 
-For reproducibility, the repository should include the actual code needed to reproduce the published analyses, an environment specification, configuration details, random seeds, evaluation definitions, and instructions for locating outputs.
+Reproducibility depends on documenting the implemented analysis, data organization, preprocessing procedures, feature definitions, model configurations, random seeds, evaluation protocols, and result-generation steps.
 
-Before releasing code or data, confirm that sharing is permitted under the applicable participant-consent, ethics, institutional, and data-governance requirements. Do not commit identifiable information, private participant records, credentials, or restricted raw data.
+The repository should contain the code and supporting documentation needed to understand and reproduce the analyses, subject to the availability and permitted use of the underlying data.
+
+Before releasing code or data, sharing permissions must be checked against participant consent, ethics approval, institutional requirements, and applicable data-governance policies. Identifiable information, private participant records, credentials, and restricted raw data must not be committed to a public repository.
 
 ## Suggested Repository Structure
 
-The structure below is a suggested organization. Keep only directories and files that exist in the actual repository; do not create empty folders merely to match this template.
+The following structure is a suggested organization, not a claim that every directory or file already exists. Retain only the directories and files present in the actual repository.
 
 ```text
 EEG_ME_MI_Gesture_Decoding/
@@ -236,31 +268,36 @@ EEG_ME_MI_Gesture_Decoding/
 
 ## Reproduction Guide
 
-The following is a general workflow, not a guarantee that commands or entry-point scripts already exist in this repository.
+To reproduce the study, users should:
 
-1. Review the methodology and evaluation protocol.
-2. Set up the Python environment using the dependencies specified in `requirements.txt`.
+1. Review the methodology and evaluation protocols.
+2. Configure the Python environment using the dependencies specified in `requirements.txt`.
 3. Configure paths to the authorized data location.
-4. Run the preprocessing and feature-extraction steps implemented in the repository.
+4. Run the implemented preprocessing and feature-extraction procedures.
 5. Execute the ME and MI LOSO experiments.
-6. Execute the temporal calibration and cross-condition transfer experiments.
-7. Generate neurophysiological, representation, explainability, robustness, and statistical outputs that are implemented.
-8. Verify the saved tables and figures against the experiment logs before reporting results.
+6. Execute the temporal calibration experiments using the specified shot levels.
+7. Execute the within-condition and bidirectional cross-condition transfer experiments.
+8. Generate the neurophysiological, representation, explainability, robustness, and statistical outputs supported by the implementation.
+9. Verify saved tables and figures against the corresponding experiment logs before reporting results.
 
-Add exact commands, filenames, operating-system requirements, and expected outputs after confirming them against the actual codebase.
+Exact commands, script names, operating-system requirements, and expected outputs should match the actual repository and its executed code.
 
 ## Results and Reporting
 
-Insert final results only after checking the saved outputs. For each experiment, report the evaluation protocol, sample or subject count, metrics, uncertainty estimates where available, and any exclusions. Do not invent accuracy values, rankings, statistical significance, or scientific conclusions.
+Quantitative findings should be reported using verified experiment outputs. Results should identify the relevant evaluation protocol, participant count, model or configuration, metrics, uncertainty estimates where available, and any exclusions.
 
-## Scope of This Project
+Performance rankings, statistical significance, and scientific conclusions must be supported by the corresponding results. No accuracy values or inferential findings should be inferred from the study design alone.
 
-This is an **EEG analysis project**, not a dataset-release paper. Its focus is cross-subject generalization, execution–imagery comparison, bidirectional transfer, temporal calibration, and neural representation analysis. It connects biomedical signal processing, machine learning, deep learning, computational neuroscience, and brain–computer interface research, with potential relevance to neural decoding and neuroprosthetic control.
+## Scope of the Project
+
+This is an **EEG analysis project**, rather than a dataset-release paper. Its focus is cross-subject generalization, execution–imagery comparison, bidirectional transfer, temporal calibration, and neural representation analysis.
+
+The project connects biomedical signal processing, classical machine learning, deep learning, computational neuroscience, and brain–computer interface research, with potential relevance to neural decoding and neuroprosthetic control.
 
 ## Project and Manuscript Status
 
-The project owner should update this section to reflect the verified status of the code and manuscript. Do not describe the manuscript as submitted or published unless that is true.
+The computational project has been completed. Manuscript submission or publication status should be reported separately and updated only when confirmed.
 
 ## Keywords
 
-EEG; motor execution; motor imagery; hand gesture decoding; cross-subject generalization; leave-one-subject-out; few-shot calibration; cross-condition transfer; representation similarity; deep learning; explainable AI; computational neuroscience; brain–computer interfaces.
+EEG; motor execution; motor imagery; hand gesture decoding; cross-subject generalization; leave-one-subject-out; few-shot calibration; temporal adaptation; cross-condition transfer; representation similarity; deep learning; explainable AI; computational neuroscience; brain–computer interfaces.
