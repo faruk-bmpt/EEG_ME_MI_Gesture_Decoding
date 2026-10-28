@@ -1076,7 +1076,7 @@ for row in duplicate_rows:
         ),
     })
 
-for row in unexpected_rows:
+for row in unparsed_rows:
     review_rows.append({
         "issue_type": "UNPARSED_SCIENTIFIC_CSV",
         "subject_id": row["subject_id"] or "",
