@@ -3,11 +3,10 @@
 
 """
 BLOCK00_PROTOCOL_FREEZE.py
+Paper Title
+"Execution–Imagery Representational Similarity and Bidirectional Transfer with 
+Temporal Calibration in Cross-Subject EEG Hand Gesture Decoding"
 
-Paper 2
-Shared and Condition-Specific EEG Representations of Hand and Finger Gestures:
-Subject-Dependent and Cross-Subject Decoding, Motor Execution–Imagery Transfer,
-and Temporal Calibration.
 
 BLOCK 00 — Protocol Freeze
 
